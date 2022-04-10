@@ -1,6 +1,8 @@
 package ports;
 
+import domain.exception.PositionalException;
+
 public interface Mapper {
-    <T> String mapper(T t);
-    <T> T mapper(String value, Class c);
+    <T> String mapperToString(T t) throws PositionalException;
+    <T> T mapperToObject(String value, Class c) throws PositionalException;
 }

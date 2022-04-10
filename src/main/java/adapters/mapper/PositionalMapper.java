@@ -2,6 +2,7 @@ package adapters.mapper;
 
 import domain.core.ClassMapper;
 import domain.core.StringMapper;
+import domain.exception.PositionalException;
 import ports.Mapper;
 
 public class PositionalMapper implements Mapper {
@@ -15,12 +16,12 @@ public class PositionalMapper implements Mapper {
     }
 
     @Override
-    public <T> String mapper(T t) {
+    public <T> String mapperToString(T t) throws PositionalException {
         return stringMapper.mapperToString(t);
     }
 
     @Override
-    public <T> T mapper(String value, Class c) {
+    public <T> T mapperToObject(String value, Class c) throws PositionalException {
         return classMapper.mapperToObject(value, c);
     }
 }
