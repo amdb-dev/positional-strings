@@ -17,6 +17,39 @@ class PositionalConverterTest {
 
     @Test
     public void mustConverterToString() {
+        Foo foo = getFoo();
+
+        PositionalConverter positionalConverter = new PositionalConverter();
+
+        String result = positionalConverter.converter(foo);
+
+        final String expected = "test1     000000000100000002.00000000010000000000300000004.0      bar1baz1000000baz2000000      bar2baz1000000baz2000000";
+        assertEquals(expected, result);
+    }
+
+    @Test
+    public void mustGenerateExceptionByAnnotationNotFound() {
+        Qux qux = new Qux();
+        qux.setFoo("test");
+
+        PositionalConverter positionalConverter = new PositionalConverter();
+
+        RuntimeException exception = assertThrows(RuntimeException.class, ()->positionalConverter.converter(qux));
+        assertTrue(exception.getCause().getMessage().contains("@Position annotation not present in class"));
+        assertTrue(exception.getMessage().contains("Error converting to String"));
+    }
+
+    @Test
+    public void mustGenerateExceptionByObjectIsNull() {
+
+        PositionalConverter positionalConverter = new PositionalConverter();
+
+        RuntimeException exception = assertThrows(RuntimeException.class, ()->positionalConverter.converter(null));
+        assertTrue(exception.getCause().getMessage().contains("The object to converter is null"));
+        assertTrue(exception.getMessage().contains("Error converting to String"));
+    }
+
+    private static Foo getFoo() {
         Foo foo = new Foo();
         foo.setFoo("test1");
         foo.setBar(1);
@@ -26,21 +59,31 @@ class PositionalConverterTest {
         foo.setFoobaz(4.0);
 
         List<Foo.Bar> barList = new ArrayList<>();
+        List<Foo.Baz> bazList = new ArrayList<>();
+
+        Foo.Baz baz1 = new Foo.Baz();
+        baz1.setFoo("baz1");
+
+        Foo.Baz baz2 = new Foo.Baz();
+        baz2.setFoo("baz2");
+
+        bazList.add(baz1);
+        bazList.add(baz2);
+
+
         Foo.Bar bar1 = new Foo.Bar();
         bar1.setFoo("bar1");
+        bar1.setBazList(bazList);
 
         Foo.Bar bar2 = new Foo.Bar();
         bar2.setFoo("bar2");
+        bar2.setBazList(bazList);
 
         barList.add(bar1);
         barList.add(bar2);
 
         foo.setBarList(barList);
-
-        PositionalConverter positionalConverter = new PositionalConverter();
-
-        String result = positionalConverter.converter(foo);
-        System.out.println("resultado aqui"+result);
+        return foo;
     }
 
     @Getter
@@ -73,6 +116,22 @@ class PositionalConverterTest {
         public static class Bar {
             @Positional(length = 10, filler = Filler.SPACES_LEFT)
             private String foo;
+
+            @Positional(isCollection = true)
+            private List<Baz> bazList;
         }
+
+        @Getter
+        @Setter
+        public static class Baz {
+            @Positional(length = 10, filler = Filler.ZEROS_RIGTH)
+            private String foo;
+        }
+    }
+
+    @Getter
+    @Setter
+    public static class Qux {
+        public String foo;
     }
 }

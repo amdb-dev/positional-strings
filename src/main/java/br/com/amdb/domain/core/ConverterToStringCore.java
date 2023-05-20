@@ -51,19 +51,22 @@ public class ConverterToStringCore {
         Positional positional = field.getAnnotation(Positional.class);
         if (positional.isCollection()) {
             Collection<Object> collection = (Collection<Object>) utilsCore.invokeGetter(data, field.getName());
-            collection.forEach(this::converter);
+            if (!Objects.isNull(collection)) {
+                collection.forEach(t -> {
+                    sb.append(converter(t));
+                });
+            }
+        } else {
+            String value = String.valueOf(utilsCore.invokeGetter(data, field.getName()));
+
+            if (!positional.filler().equals(Filler.NONE)) {
+                if (positional.filler().equals(Filler.ZEROS_LEFT) || positional.filler().equals(Filler.SPACES_LEFT))
+                    value = StringUtils.leftPad(value, positional.length(), positional.filler().getValue());
+
+                if (positional.filler().equals(Filler.ZEROS_RIGTH) || positional.filler().equals(Filler.SPACES_RIGTH))
+                    value = StringUtils.rightPad(value, positional.length(), positional.filler().getValue());
+            }
+            sb.append(value);
         }
-        String value = String.valueOf(utilsCore.invokeGetter(data, field.getName()));
-
-        if (!positional.filler().equals(Filler.NONE)) {
-            if (positional.filler().equals(Filler.ZEROS_LEFT) || positional.filler().equals(Filler.SPACES_LEFT))
-                value = StringUtils.leftPad(value, positional.length(), positional.filler().getValue());
-
-            if (positional.filler().equals(Filler.ZEROS_RIGTH) || positional.filler().equals(Filler.SPACES_RIGTH))
-                value = StringUtils.rightPad(value, positional.length(), positional.filler().getValue());
-        }
-
-        sb.append(value);
     }
-
 }
