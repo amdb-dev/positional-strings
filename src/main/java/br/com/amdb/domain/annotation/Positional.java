@@ -11,4 +11,5 @@ public @interface Positional {
     Filler filler() default Filler.NONE;
     boolean isCollection() default false;
     int collectionSize() default 0;
+    String separator() default "";
 }

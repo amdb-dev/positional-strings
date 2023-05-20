@@ -59,6 +59,10 @@ public class ConverterToStringCore {
         } else {
             String value = String.valueOf(utilsCore.invokeGetter(data, field.getName()));
 
+            if (value.length() > positional.length()) {
+                value = value.substring(0, positional.length());
+            }
+
             if (!positional.filler().equals(Filler.NONE)) {
                 if (positional.filler().equals(Filler.ZEROS_LEFT) || positional.filler().equals(Filler.SPACES_LEFT))
                     value = StringUtils.leftPad(value, positional.length(), positional.filler().getValue());
@@ -66,7 +70,7 @@ public class ConverterToStringCore {
                 if (positional.filler().equals(Filler.ZEROS_RIGTH) || positional.filler().equals(Filler.SPACES_RIGTH))
                     value = StringUtils.rightPad(value, positional.length(), positional.filler().getValue());
             }
-            sb.append(value);
+            sb.append(value).append(positional.separator());
         }
     }
 }
