@@ -2,6 +2,7 @@ package br.com.amdb.domain.core;
 
 import br.com.amdb.domain.annotation.Positional;
 import br.com.amdb.domain.enumeration.Filler;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
@@ -13,11 +14,10 @@ import java.util.stream.Collectors;
 
 public class ConverterToStringCore {
 
-    private final UtilsCore utilsCore;
-    private Object otherField;
+    private final ConverterUtilsCore converterUtilsCore;
 
     public ConverterToStringCore() {
-        this.utilsCore = new UtilsCore();
+        this.converterUtilsCore = new ConverterUtilsCore();
     }
 
     public <T> String converter(T data) {
@@ -46,18 +46,19 @@ public class ConverterToStringCore {
         }
     }
 
+    @SneakyThrows
     private void converter(Field field, StringBuilder sb, Object data) {
         field.setAccessible(true);
         Positional positional = field.getAnnotation(Positional.class);
-        if (positional.isCollection()) {
-            Collection<Object> collection = (Collection<Object>) utilsCore.invokeGetter(data, field.getName());
+        if (converterUtilsCore.collectionTypes().containsKey(field.getType())) {
+            Collection<Object> collection = (Collection<Object>) field.get(data);
             if (!Objects.isNull(collection)) {
                 collection.forEach(t -> {
                     sb.append(converter(t));
                 });
             }
         } else {
-            String value = String.valueOf(utilsCore.invokeGetter(data, field.getName()));
+            String value = String.valueOf(field.get(data));
 
             if (value.length() > positional.length()) {
                 value = value.substring(0, positional.length());

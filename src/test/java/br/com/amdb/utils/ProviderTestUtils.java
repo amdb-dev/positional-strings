@@ -9,7 +9,9 @@ import lombok.ToString;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ProviderTestUtils {
 
@@ -21,10 +23,10 @@ public class ProviderTestUtils {
         foo.setQux(BigDecimal.TEN);
         foo.setFoobar(3);
         foo.setFoobaz(4.0);
-        foo.setLocalDate(LocalDate.now());
+        foo.setLocalDate(LocalDate.parse("2024-01-01"));
 
         List<Foo.Bar> barList = new ArrayList<>();
-        List<Foo.Baz> bazList = new ArrayList<>();
+        Set<Foo.Baz> bazSet = new LinkedHashSet<>();
 
         Foo.Baz baz1 = new Foo.Baz();
         baz1.setFoo("baz1");
@@ -32,17 +34,17 @@ public class ProviderTestUtils {
         Foo.Baz baz2 = new Foo.Baz();
         baz2.setFoo("baz2");
 
-        bazList.add(baz1);
-        bazList.add(baz2);
+        bazSet.add(baz1);
+        bazSet.add(baz2);
 
 
         Foo.Bar bar1 = new Foo.Bar();
         bar1.setFoo("bar1");
-        bar1.setBazList(bazList);
+        bar1.setBazSet(bazSet);
 
         Foo.Bar bar2 = new Foo.Bar();
         bar2.setFoo("bar2");
-        bar2.setBazList(bazList);
+        bar2.setBazSet(bazSet);
 
         barList.add(bar1);
         barList.add(bar2);
@@ -77,7 +79,7 @@ public class ProviderTestUtils {
         @Positional(length = 10, filler = Filler.SPACES_RIGTH)
         private LocalDate localDate;
 
-        @Positional(isCollection = true)
+        @Positional(length = 20, collectionSize = 2)
         private List<Bar> barList;
 
         @Getter
@@ -87,8 +89,8 @@ public class ProviderTestUtils {
             @Positional(length = 10, filler = Filler.SPACES_LEFT)
             private String foo;
 
-            @Positional(isCollection = true, collectionSize = 2)
-            private List<Baz> bazList;
+            @Positional(length = 10, collectionSize = 2)
+            private Set<Baz> bazSet;
         }
 
         @Getter

@@ -9,7 +9,6 @@ import java.lang.annotation.RetentionPolicy;
 public @interface Positional {
     int length() default 0;
     Filler filler() default Filler.NONE;
-    boolean isCollection() default false;
     int collectionSize() default 0;
     String separator() default "";
 }

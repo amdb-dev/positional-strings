@@ -5,18 +5,20 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class ConverterToClassCore {
 
-    private final UtilsCore utilsCore;
+    private final ConverterUtilsCore converterUtilsCore;
 
     public ConverterToClassCore() {
-        this.utilsCore = new UtilsCore();
+        this.converterUtilsCore = new ConverterUtilsCore();
     }
 
     public <T> T converter(String transcode, Class<T> dataClass) {
@@ -27,11 +29,21 @@ public class ConverterToClassCore {
             if (Objects.isNull(dataClass))
                 throw new RuntimeException("Return type not informed");
 
-            List<Field> fields = utilsCore.getFields(dataClass);
+            List<Field> fields = Arrays.stream(dataClass.getDeclaredFields())
+                    .filter(c->c.isAnnotationPresent(Positional.class))
+                    .collect(Collectors.toList());
+
+            if (fields.isEmpty())
+                throw new RuntimeException("@Position annotation not present in class");
 
             T t = dataClass.getDeclaredConstructor().newInstance();
+            AtomicInteger position = new AtomicInteger();
             fields.forEach(field->{
-                converter(transcode, t, field);
+                field.setAccessible(true);
+                Positional positional = field.getAnnotation(Positional.class);
+                int length = positional.length();
+                converter(transcode, t, field, position.get(),  positional);
+                position.addAndGet(length);
             });
 
             return t;
@@ -40,29 +52,26 @@ public class ConverterToClassCore {
         }
     }
 
-    private <T> void converter(String transcode, T t, Field field) {
+    private <T> void converter(String transcode, T t, Field field, int position, Positional positional) {
         try {
-            field.setAccessible(true);
-            Positional positional = field.getAnnotation(Positional.class);
+            if (converterUtilsCore.collectionTypes().containsKey(field.getType())) {
+                ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
+                Type[] typeArguments = parameterizedType.getActualTypeArguments();
 
-            if (positional.isCollection()) {
-                if (positional.collectionSize() == 0)
-                    throw new RuntimeException(String.format("Need to inform the size of the list to be built for the collection %s", field.getName()));
+                Collection<Object> collection = converterUtilsCore.collectionTypes().get(field.getType());
 
-                ParameterizedType type = (ParameterizedType) field.getGenericType();
-
-                //List<Field> fields = utilsCore.getFields(type.getClass());
-                Collection<Object> objects = (Collection<Object>) type.getClass().getDeclaredConstructor().newInstance();
-
-                for (int i=0; i< positional.collectionSize(); i++) {
-                    Object obj = converter(transcode, type.getClass());
-                    objects.add(obj);
+                for (int i=0; i<positional.collectionSize(); i++) {
+                    Class<?> clazz = (Class<?>) typeArguments[0];
+                    String segment = transcode.substring(position, position + positional.length());
+                    Object obj = converter(segment, clazz);
+                    collection.add(obj);
+                    //TODO: corrigir posicionamento, listas quando encadeadas, estao salvando o mesmo valor
+                    //position += positional.length();
                 }
-                utilsCore.invokeSetter(t, field.getName(), objects);
+                field.set(t, collection);
             } else {
-                String value = transcode.substring(0, positional.length());
-                transcode = transcode.substring(positional.length());
-                utilsCore.invokeSetter(t, field.getName(), value);
+                String segment = transcode.substring(position, Math.min(position + positional.length(), transcode.length())).trim();
+                field.set(t, converterUtilsCore.converter(segment, field.getType()));
             }
         }catch (Exception e) {
             throw new RuntimeException(e);
