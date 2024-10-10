@@ -8,7 +8,7 @@ A biblioteca foi escrita agnostica a fremework, podendo ser usada como component
 
 ``` 
 <dependency>
-    <groupId>io.github.amdb-dev</groupId>
+    <groupId>io.github.amdbstacks</groupId>
     <artifactId>positional-strings</artifactId>
     <version>1.0.0</version>
 </dependency>
