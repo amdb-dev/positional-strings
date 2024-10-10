@@ -36,8 +36,23 @@ Para fazer o uso correto da biblioteca, siga sua implementaçao conforme o model
 Obs: 
 * Para os tipos de dados List e Set, o tipo da lista, deve ser especifico, e a classe parametro deve estar anotada com @Positional, nao senod suportados listas dos tipos primitivos ou wrappers;
 * O modelo implementado segue padroes de recursividade, podendo encadear listas dentro de listas, e objetos conforme a necessidade, desde que devidamente anotados.
+* Em caso de objetos de coleçao encadeada, listas dentro de listas por exemplo, o parametro length da lista mae, deve ser a somatoria da quandade de itens a serem serealizados, 
+como no exemplo abaixo, onde a lista Bar tem tamanho 30, devido o seu conteudo ser uma String de tamanho 10, somado a 20 da coleçao encadeada Baz, que tem tamaho 10 mas se repete 2 vezes, ficando 10+(10*2);
+```java
+@Positional(length = 30, collectionSize = 2)
+private List<Bar> barList;
 
+@Getter
+@Setter
+@ToString
+public static class Bar {
+    @Positional(length = 10, filler = Filler.SPACES_LEFT)
+    private String foo;
 
+    @Positional(length = 10, collectionSize = 2)
+    private Set<Baz> bazSet;
+}
+```
 
 ## Objetos para string posicional
 ```java

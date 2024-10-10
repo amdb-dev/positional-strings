@@ -79,7 +79,7 @@ public class ProviderTestUtils {
         @Positional(length = 10, filler = Filler.SPACES_RIGTH)
         private LocalDate localDate;
 
-        @Positional(length = 20, collectionSize = 2)
+        @Positional(length = 30, collectionSize = 2)
         private List<Bar> barList;
 
         @Getter

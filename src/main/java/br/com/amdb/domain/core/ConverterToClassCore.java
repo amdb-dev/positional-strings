@@ -59,18 +59,25 @@ public class ConverterToClassCore {
                 Type[] typeArguments = parameterizedType.getActualTypeArguments();
 
                 Collection<Object> collection = converterUtilsCore.collectionTypes().get(field.getType());
+                Class<?> clazz = (Class<?>) typeArguments[0];
 
                 for (int i=0; i<positional.collectionSize(); i++) {
-                    Class<?> clazz = (Class<?>) typeArguments[0];
-                    String segment = transcode.substring(position, position + positional.length());
+                    int beginIndex = position;
+                    int endIndex = position + positional.length();
+
+                    if (endIndex > transcode.length())
+                        throw new IndexOutOfBoundsException(String.format("String transcode is shorter than expected: start index %s end index %s, transcode %s.", beginIndex, endIndex, transcode));
+
+                    String segment = transcode.substring(beginIndex, endIndex);
+
                     Object obj = converter(segment, clazz);
                     collection.add(obj);
-                    //TODO: corrigir posicionamento, listas quando encadeadas, estao salvando o mesmo valor
-                    //position += positional.length();
+                    position = endIndex;
                 }
                 field.set(t, collection);
             } else {
-                String segment = transcode.substring(position, Math.min(position + positional.length(), transcode.length())).trim();
+                int endIndex = Math.min(position + positional.length(), transcode.length());
+                String segment = transcode.substring(position, endIndex).trim();
                 field.set(t, converterUtilsCore.converter(segment, field.getType()));
             }
         }catch (Exception e) {
